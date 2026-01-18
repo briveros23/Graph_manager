@@ -1,50 +1,34 @@
 from graph_generator import GraphBuilder
+from graph_generator import DocumentLector
 import streamlit as st
 import igraph as ig
 import matplotlib.pyplot as plt
 
+
 st.title("Construcción de grafo desde múltiples CSV")
+# barra lateral con instrucciones
+st.sidebar.header("Instrucciones")
+st.sidebar.markdown("""
+1. Sube documentos csv, txt o excel que contengan las columnas 'source','target', opcional 'weight'.
+(observacion: los archivos txt seran tratados como csv con separador ',')
+2. Seleccione las columas adecuadas. 
+""")
 
-uploaded_files = st.file_uploader(
+uploaded_file = st.file_uploader(
     "Sube uno o varios CSV",
-    type=["csv"],
-    accept_multiple_files=True
+    type=["csv","txt","excel"],
+    accept_multiple_files=False,
+    help="recuerda que para las archivos txt se usará el separador ','"
 )
+if uploaded_file is not None:
+    name = uploaded_file.name if uploaded_file else None
 
-if uploaded_files:
-    builder = GraphBuilder(directed=True)
+    df = DocumentLector().lector(uploaded_file, name)
+    st.write(name)
+    if df is None:
+        st.error('No se pudo leer el archivo. Asegúrate de que el formato sea correcto.') 
+    else:
+        st.write("Vista previa de los datos cargados:")
+        st.dataframe(df.head())
 
-    try:
-        graph = builder.build_from_files(uploaded_files)
-
-        st.success("Grafo construido correctamente")
-        st.write(f"Nodos: {graph.vcount()}")
-        st.write(f"Aristas: {graph.ecount()}")
-
-        if st.checkbox("Mostrar nodos"):
-            st.write(graph.vs["name"])
-
-        if st.checkbox("Mostrar aristas"):
-            st.write(graph.get_edgelist())
-
-        # -------------------------
-        # Visualización del grafo
-        # -------------------------
-        if st.checkbox("Mostrar grafo"):
-            fig, ax = plt.subplots(figsize=(5,5))  # tamaño pequeño
-            layout = graph.layout("fr")  # Fruchterman-Reingold (popular)
-            ig.plot(
-                graph,
-                target=ax,
-                layout=layout,
-                vertex_size=20,
-                vertex_color="skyblue",
-                vertex_label=graph.vs["name"],
-                edge_color="gray",
-                bbox=(200,200),
-                margin=20
-            )
-            st.pyplot(fig)
-
-    except Exception as e:
-        st.error(str(e))
+    

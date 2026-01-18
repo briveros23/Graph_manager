@@ -2,6 +2,26 @@ import pandas as pd
 import igraph as ig
 from pathlib import Path
 
+class DocumentLector:
+    def __init__(self):
+        pass 
+    def csv_reader(self, file):
+        """Lee un archivo CSV y devuelve un DataFrame"""
+        return pd.read_csv(file)
+    def excel_reader(self, file):
+        """Lee un archivo Excel y devuelve un DataFrame"""
+        return pd.read_excel(file)
+    def lector (self, file, name=None):
+        """Determina el tipo de archivo y llama al lector adecuado"""
+        if name.endswith('.csv'):
+            return self.csv_reader(file)
+        elif name.endswith('.xlsx'):
+            return self.excel_reader(file)
+        elif name.endswith('.txt'):
+            return self.csv_reader(file)
+    
+
+
 class GraphBuilder:
     def __init__(self, directed=False):
         self.directed = directed
